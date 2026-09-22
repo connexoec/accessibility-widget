@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Accessibility Widget — Demo</title>
+  <style>
+    body{font-family:system-ui,Segoe UI,Roboto,Arial,sans-serif;max-width:760px;margin:0 auto;padding:40px 20px;line-height:1.6;color:#111;background:#fafafa}
+    h1{font-size:2rem} a{color:#0a58ca} img{max-width:100%;border-radius:8px}
+    .card{background:#fff;border:1px solid #e5e5e5;border-radius:12px;padding:20px;margin:20px 0}
+    button.demo{padding:10px 16px;border-radius:8px;border:none;background:#ff6600;color:#fff;font-weight:600;cursor:pointer}
+  </style>
+</head>
+<body>
+  <h1>Demo del Widget de Accesibilidad</h1>
+  <p>Busca el botón redondo de accesibilidad (♿) en la esquina. Ábrelo y prueba
+    los 11 controles: tamaño de texto, espaciado, fuente para dislexia, alto
+    contraste, blanco y negro, resaltar enlaces, guía de lectura, cursor grande,
+    lector de voz, desactivar animaciones y modo visual total.</p>
+
+  <div class="card">
+    <h2>Un bloque de ejemplo</h2>
+    <p>Selecciona este párrafo (o deslízalo con el dedo en el móvil) con el
+      <strong>Lector de voz</strong> activado y la página lo leerá en voz alta.
+      Prueba también el <a href="#">enlace de ejemplo</a> con “Resaltar enlaces”.</p>
+    <button class="demo">Botón de ejemplo</button>
+  </div>
+
+  <div class="card">
+    <h2>Otro bloque</h2>
+    <p>El motor aplica clases <code>a11y-*</code> al elemento <code>&lt;html&gt;</code>
+      y guarda las preferencias del usuario en <code>localStorage</code>, así que
+      se mantienen entre visitas.</p>
+  </div>
+
+  <!-- ── La única línea que hay que añadir a tu sitio ── -->
+  <script src="a11y-widget.js" data-accent="#ff6600" data-position="bottom-right" defer></script>
+</body>
+</html>

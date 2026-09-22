@@ -1,0 +1,49 @@
+{
+  "name": "connexo-accessibility-widget",
+  "version": "1.0.0",
+  "description": "Widget de accesibilidad completo en un solo archivo, sin dependencias. 11 controles (contraste, dislexia, lector de voz, guía de lectura, cursor grande y más). Se integra en cualquier web en menos de 5 minutos.",
+  "main": "a11y-widget.js",
+  "unpkg": "a11y-widget.min.js",
+  "jsdelivr": "a11y-widget.min.js",
+  "files": [
+    "a11y-widget.js",
+    "a11y-widget.min.js",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "esbuild a11y-widget.js --minify --legal-comments=inline --outfile=a11y-widget.min.js",
+    "demo": "npx serve ."
+  },
+  "keywords": [
+    "accessibility",
+    "a11y",
+    "wcag",
+    "accessibility-widget",
+    "screen-reader",
+    "text-to-speech",
+    "dyslexia",
+    "high-contrast",
+    "inclusive-design",
+    "vanilla-js",
+    "no-dependencies",
+    "widget"
+  ],
+  "author": "Connexo (Ecuador) · en convenio con Fundación Arupo",
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "homepage": "https://github.com/connexoec/accessibility-widget#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/connexoec/accessibility-widget.git"
+  },
+  "bugs": {
+    "url": "https://github.com/connexoec/accessibility-widget/issues"
+  },
+  "devDependencies": {
+    "esbuild": "^0.23.0"
+  },
+  "dependencies": {}
+}

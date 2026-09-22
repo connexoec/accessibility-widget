@@ -1,0 +1,12 @@
+# Dependencias (no hacen falta para usar el widget; solo para `npm run build`)
+node_modules/
+
+# Sistema operativo / editores
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Logs
+*.log
+npm-debug.log*
