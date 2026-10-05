@@ -9,6 +9,14 @@
     h1{font-size:2rem} a{color:#0a58ca} img{max-width:100%;border-radius:8px}
     .card{background:#fff;border:1px solid #e5e5e5;border-radius:12px;padding:20px;margin:20px 0}
     button.demo{padding:10px 16px;border-radius:8px;border:none;background:#ff6600;color:#fff;font-weight:600;cursor:pointer}
+    .photo{position:relative;margin:0;border-radius:8px;overflow:hidden}
+    .photo img{display:block;width:100%;border-radius:0}
+    .photo .shade{position:absolute;inset:0;background:linear-gradient(transparent 40%,rgba(0,0,0,.65))}
+    .photo figcaption{position:absolute;left:16px;bottom:12px;color:#fff;font-weight:600}
+    /* Capa decorativa ENCIMA de todo el contenido (como el ruido, las scanlines o las
+       viñetas de muchos sitios). Sirve para comprobar que los modos de contraste no la
+       convierten en una cortina negra que tape la página. */
+    .vignette{position:fixed;inset:0;pointer-events:none;z-index:50;background:radial-gradient(ellipse at center,transparent 65%,rgba(0,0,0,.06))}
   </style>
 </head>
 <body>
@@ -27,11 +35,22 @@
   </div>
 
   <div class="card">
+    <h2>Imagen con una capa encima</h2>
+    <figure class="photo">
+      <img alt="Ilustración: montañas al atardecer" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 720 300'%3E%3Cdefs%3E%3ClinearGradient id='s' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%23ffb347'/%3E%3Cstop offset='1' stop-color='%23ff6600'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='720' height='300' fill='url(%23s)'/%3E%3Ccircle cx='560' cy='110' r='46' fill='%23fff3c4'/%3E%3Cpath d='M0 300 170 120l130 120 130-150 290 210Z' fill='%23663300'/%3E%3C/svg%3E" />
+      <span class="shade"></span>
+      <figcaption>Pie de foto sobre la imagen</figcaption>
+    </figure>
+  </div>
+
+  <div class="card">
     <h2>Otro bloque</h2>
     <p>El motor aplica clases <code>a11y-*</code> al elemento <code>&lt;html&gt;</code>
       y guarda las preferencias del usuario en <code>localStorage</code>, así que
       se mantienen entre visitas.</p>
   </div>
+
+  <div class="vignette"></div>
 
   <!-- ── La única línea que hay que añadir a tu sitio ── -->
   <script src="a11y-widget.js" data-accent="#ff6600" data-position="bottom-right" defer></script>

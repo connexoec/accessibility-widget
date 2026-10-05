@@ -4,6 +4,32 @@ Todas las versiones notables de este proyecto se documentan aquí.
 El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/)
 y el proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
+## [Sin publicar]
+
+### Corregido
+- **Alto contraste** y **Modo Visual Total** ya no dejan la página entera en
+  negro en sitios con capas decorativas encima del contenido (ruido, *scanlines*,
+  viñetas, degradados sobre fotos). Antes, al pintar de negro el fondo de todos
+  los elementos, esas capas transparentes se volvían una cortina opaca. Ahora se
+  detectan (no reciben clics, o están posicionadas y no tienen texto ni controles)
+  y conservan su fondo transparente, también las que se añaden después de activar
+  el modo.
+- Los modos de contraste ya no repintan la interfaz del propio widget (cuadro
+  negro detrás del icono ♿, icono amarillo sobre el color de marca).
+
+### Cambiado
+- El icono del botón flotante, la bolita de los interruptores encendidos y el
+  botón principal del lector de voz eligen solos blanco o casi negro según el
+  contraste con `accent` (mínimo 3:1). Con el naranja por defecto (`#ff6600`) el
+  icono pasa a ser oscuro: el blanco solo llegaba a 2,9:1.
+
+### Documentación
+- Las URLs del CDN fijan la versión mayor (`@1`).
+- Avisos sobre botones flotantes que el ♿ puede tapar, cómo usar un botón
+  propio ocultando el flotante, y el recorte de títulos con la fuente base a 24 px.
+- `demo.html` incluye una capa decorativa y una imagen con degradado para probar
+  los modos de contraste.
+
 ## [1.0.0] — 2026-09-22
 
 ### Añadido

@@ -8,7 +8,7 @@
 [![npm version](https://img.shields.io/npm/v/connexo-accessibility-widget?color=ff6600&label=npm)](https://www.npmjs.com/package/connexo-accessibility-widget)
 [![License: MIT](https://img.shields.io/badge/License-MIT-ff6600.svg)](./LICENSE)
 ![No dependencies](https://img.shields.io/badge/dependencias-0-ff6600.svg)
-![Size](https://img.shields.io/badge/min-~23KB%20(~8KB%20gzip)-ff6600.svg)
+![Size](https://img.shields.io/badge/min-~26KB%20(~10KB%20gzip)-ff6600.svg)
 ![Vanilla JS](https://img.shields.io/badge/vanilla-JS-ff6600.svg)
 
 </div>
@@ -72,11 +72,15 @@ Añade **una sola línea** antes de `</body>`:
 
 ```html
 <!-- jsDelivr (desde npm) -->
-<script src="https://cdn.jsdelivr.net/npm/connexo-accessibility-widget/a11y-widget.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/connexo-accessibility-widget@1/a11y-widget.min.js" defer></script>
 
 <!-- o unpkg -->
-<script src="https://unpkg.com/connexo-accessibility-widget/a11y-widget.min.js" defer></script>
+<script src="https://unpkg.com/connexo-accessibility-widget@1/a11y-widget.min.js" defer></script>
 ```
+
+> El `@1` fija la versión mayor: recibes las correcciones de la 1.x sin que una
+> futura 2.0 cambie tu sitio sin avisar. Para fijar una versión exacta usa, por
+> ejemplo, `@1.0.0`.
 
 ### Opción B — Alojándolo tú
 1. Copia `a11y-widget.min.js` (o `a11y-widget.js` sin minificar) a tu sitio.
@@ -118,7 +122,7 @@ import { useEffect } from 'react';
 export default function App() {
   useEffect(() => {
     const s = document.createElement('script');
-    s.src = 'https://cdn.jsdelivr.net/npm/connexo-accessibility-widget/a11y-widget.min.js';
+    s.src = 'https://cdn.jsdelivr.net/npm/connexo-accessibility-widget@1/a11y-widget.min.js';
     s.defer = true;
     document.body.appendChild(s);
     return () => { s.remove(); };
@@ -146,7 +150,7 @@ export default function RootLayout({ children }) {
       <body>
         {children}
         <Script
-          src="https://cdn.jsdelivr.net/npm/connexo-accessibility-widget/a11y-widget.min.js"
+          src="https://cdn.jsdelivr.net/npm/connexo-accessibility-widget@1/a11y-widget.min.js"
           strategy="afterInteractive"
         />
       </body>
@@ -190,7 +194,7 @@ En `angular.json`, agrégalo al array `scripts`:
 `</body>` pega:
 
 ```php
-<script src="https://cdn.jsdelivr.net/npm/connexo-accessibility-widget/a11y-widget.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/connexo-accessibility-widget@1/a11y-widget.min.js" defer></script>
 ```
 
 **Con plugin** (recomendado para no perderlo al actualizar el tema): usa
@@ -203,7 +207,7 @@ En `angular.json`, agrégalo al array `scripts`:
 Admin → *Temas* → *Editar código* → `layout/theme.liquid`, antes de `</body>`:
 
 ```liquid
-<script src="https://cdn.jsdelivr.net/npm/connexo-accessibility-widget/a11y-widget.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/connexo-accessibility-widget@1/a11y-widget.min.js" defer></script>
 ```
 </details>
 
@@ -250,6 +254,17 @@ O por objeto global **antes** del script:
 | `position` | `bottom-right` · `bottom-left` · `top-right` · `top-left` | `bottom-right` |
 | `storageKey` | nombre de la clave de `localStorage` | `a11y-settings` |
 
+> **Revisa la esquina antes de publicar.** El botón ♿ queda por encima de todo
+> (`z-index` máximo), así que si tu sitio ya tiene algo flotante en esa esquina
+> —botón de "volver arriba", WhatsApp, chat, aviso de cookies— lo tapará.
+> Cámbialo de esquina con `position`, o ponlo en tu menú (ver
+> [API de JavaScript](#-api-de-javascript)).
+
+> **Contraste del icono:** el icono y los textos que van sobre el color `accent`
+> se ponen en blanco o en casi negro automáticamente, según cuál se lea mejor
+> (mínimo 3:1, WCAG 1.4.11). Con colores claros, como dorados o amarillos, el
+> icono saldrá oscuro.
+
 ---
 
 ## 🧠 API de JavaScript
@@ -264,8 +279,22 @@ A11yWidget.set({ highContrast: true, fontSize: 1.25 }); // aplica preferencias
 Útil, por ejemplo, para poner tu **propio** botón "Accesibilidad" en el menú:
 
 ```html
-<button onclick="A11yWidget.open()">Accesibilidad</button>
+<button onclick="A11yWidget.open()" aria-haspopup="dialog">Accesibilidad</button>
 ```
+
+Si lo haces, oculta el botón flotante y elige el lado por el que se abre el
+panel (`position` con `-right` lo abre por la derecha, con `-left` por la
+izquierda):
+
+```html
+<style>.a11y-launch { display: none !important; }</style>
+<script src="…/a11y-widget.min.js" data-position="top-right" defer></script>
+```
+
+Al cerrar el panel, el foco vuelve a tu botón. Si tu botón no es un `<button>`
+de verdad (por ejemplo, un `<div>` con un clic), dale `role="button"`,
+`tabindex="0"` y que responda a Enter y Espacio: si no, quien navega con
+teclado no podrá abrir el panel.
 
 ---
 
@@ -318,7 +347,17 @@ la guía de la **British Dyslexia Association**:
 
 **¿Rompe el diseño de mi sitio?**
 No. Los modos son *opt-in* y su UI está aislada; al apagarlos, tu sitio queda
-igual que antes.
+igual que antes. Mientras están activos, ten en cuenta dos cosas:
+
+- **Alto contraste y Modo Visual Total** pintan de negro el fondo de todo lo que
+  tiene texto. Las capas decorativas que van encima del contenido (ruido,
+  *scanlines*, viñetas, degradados sobre fotos) se detectan solas —porque no
+  reciben clics (`pointer-events: none`) o porque están posicionadas y no tienen
+  texto ni controles— y se dejan transparentes, para que no tapen la página.
+- **Tamaño de texto y Modo Visual Total** agrandan la fuente base (`<html>` hasta
+  24 px). Si tus títulos usan `rem` dentro de contenedores con
+  `overflow: hidden`, las palabras largas pueden recortarse. Comprueba tus
+  títulos con el texto al 150 % (WCAG pide que el contenido aguante hasta 200 %).
 
 **¿Envía datos a algún servidor?**
 No. Todo ocurre en el navegador del usuario; las preferencias se guardan solo en
@@ -329,7 +368,8 @@ No. Es un archivo. `npm`/`esbuild` solo hacen falta si quieres **editar** y
 volver a minificar.
 
 **¿Puedo poner mi propio botón en vez del flotante?**
-Sí: usa `A11yWidget.open()` desde cualquier botón tuyo.
+Sí: usa `A11yWidget.open()` desde cualquier botón tuyo y oculta el flotante
+(ver [API de JavaScript](#-api-de-javascript)).
 
 ---
 

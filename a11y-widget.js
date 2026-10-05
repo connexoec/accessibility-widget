@@ -97,14 +97,34 @@
     'top-right': 'top:20px;right:20px;', 'top-left': 'top:20px;left:20px;'
   }[POSITION] || 'bottom:20px;right:20px;';
 
+  // Color del icono y de los textos sobre el color de marca: blanco si se lee bien
+  // (≥ 3:1, WCAG 1.4.11); si no, el que más contraste dé entre blanco y casi negro.
+  // El canvas convierte cualquier formato de color CSS a sRGB.
+  function lin(v) { v /= 255; return v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }
+  function onAccent(color) {
+    try {
+      var cv = document.createElement('canvas'); cv.width = cv.height = 1;
+      var x = cv.getContext('2d'); x.fillStyle = '#000'; x.fillStyle = color; x.fillRect(0, 0, 1, 1);
+      var d = x.getImageData(0, 0, 1, 1).data;
+      var L = 0.2126 * lin(d[0]) + 0.7152 * lin(d[1]) + 0.0722 * lin(d[2]);
+      var white = 1.05 / (L + 0.05), dark = (L + 0.05) / 0.0556; // #111 → L ≈ 0,0056
+      return white >= 3 || white >= dark ? '#fff' : '#111';
+    } catch (e) { return '#fff'; }
+  }
+
+  // Interfaz del propio widget: los modos de contraste no deben repintarla.
+  // `:where()` no suma especificidad, así las reglas pesan lo mismo que antes frente al sitio.
+  var UI = '#a11y-root,#a11y-root *,.a11y-bar,.a11y-bar *,#a11y-ruler,#a11y-ruler *';
+  function notUI(selectors) { return selectors.split(',').map(function (s) { return s + ':where(:not(' + UI + '))'; }).join(','); }
+
   var CSS = [
-    ':root{--a11y-accent:' + ACCENT + '}',
+    ':root{--a11y-accent:' + ACCENT + ';--a11y-on-accent:' + onAccent(ACCENT) + '}',
 
     /* ===== Modos globales (afectan al CONTENIDO del sitio, van en <html>) ===== */
     ':focus-visible{outline:3px solid var(--a11y-accent)!important;outline-offset:2px;border-radius:4px}',
 
-    '.a11y-high-contrast,.a11y-high-contrast *{background-color:#000!important;background-image:none!important;color:#fff!important;border-color:#fff!important;box-shadow:none!important;text-shadow:none!important}',
-    '.a11y-high-contrast a,.a11y-high-contrast button,.a11y-high-contrast [role="button"],.a11y-high-contrast [role="link"],.a11y-high-contrast summary{color:#ff0!important;text-decoration:underline!important;outline:1px solid #ff0!important}',
+    '.a11y-high-contrast,.a11y-high-contrast :where(:not(' + UI + ')){background-color:#000!important;background-image:none!important;color:#fff!important;border-color:#fff!important;box-shadow:none!important;text-shadow:none!important}',
+    notUI('.a11y-high-contrast a,.a11y-high-contrast button,.a11y-high-contrast [role="button"],.a11y-high-contrast [role="link"],.a11y-high-contrast summary') + '{color:#ff0!important;text-decoration:underline!important;outline:1px solid #ff0!important}',
 
     '.a11y-grayscale{filter:grayscale(1)!important}',
 
@@ -114,9 +134,12 @@
 
     '.a11y-reduced-motion *{animation:none!important;transition:none!important;scroll-behavior:auto!important}',
 
-    '.a11y-visual-total,.a11y-visual-total *{background-color:#000!important;background-image:none!important;color:#ff0!important;border-color:#ff0!important;box-shadow:none!important;text-shadow:none!important}',
-    '.a11y-visual-total a,.a11y-visual-total button,.a11y-visual-total [role="button"]{text-decoration:underline!important;font-weight:800!important;outline:2px solid #ff0!important}',
+    '.a11y-visual-total,.a11y-visual-total :where(:not(' + UI + ')){background-color:#000!important;background-image:none!important;color:#ff0!important;border-color:#ff0!important;box-shadow:none!important;text-shadow:none!important}',
+    notUI('.a11y-visual-total a,.a11y-visual-total button,.a11y-visual-total [role="button"]') + '{text-decoration:underline!important;font-weight:800!important;outline:2px solid #ff0!important}',
     '.a11y-visual-total img,.a11y-visual-total video{filter:grayscale(1) contrast(1.4)!important}',
+
+    /* Capas decorativas detectadas por SeeThrough: siguen transparentes en los modos de contraste */
+    '.a11y-high-contrast [data-a11y-thru],.a11y-high-contrast [data-a11y-thru="tree"] *,.a11y-visual-total [data-a11y-thru],.a11y-visual-total [data-a11y-thru="tree"] *{background-color:transparent!important}',
 
     '.a11y-big-cursor,.a11y-big-cursor *{cursor:url(' + CURSOR_ARROW + ') 6 4,auto!important}',
     '.a11y-big-cursor a,.a11y-big-cursor button,.a11y-big-cursor [role="button"],.a11y-big-cursor [role="link"],.a11y-big-cursor label[for],.a11y-big-cursor select,.a11y-big-cursor summary,.a11y-big-cursor [tabindex]:not([tabindex="-1"]){cursor:url(' + CURSOR_HAND + ') 18 4,auto!important}',
@@ -130,7 +153,7 @@
     '#a11y-root,#a11y-root *{box-sizing:border-box;font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif!important;letter-spacing:normal!important;word-spacing:normal!important;line-height:normal!important;text-shadow:none!important;text-decoration:none!important}',
     '#a11y-root{position:fixed;z-index:2147483000}',
 
-    '.a11y-launch{position:fixed;' + POS + 'width:56px;height:56px;border-radius:50%;border:none;background:var(--a11y-accent)!important;color:#fff!important;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 6px 20px rgba(0,0,0,.35)!important;z-index:2147483400;padding:0}',
+    '.a11y-launch{position:fixed;' + POS + 'width:56px;height:56px;border-radius:50%;border:none;background:var(--a11y-accent)!important;color:var(--a11y-on-accent)!important;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 6px 20px rgba(0,0,0,.35)!important;z-index:2147483400;padding:0}',
     '.a11y-launch:hover{filter:brightness(1.08)!important}',
     '.a11y-launch svg{width:30px;height:30px}',
     '.a11y-launch:focus-visible{outline:3px solid #fff!important;outline-offset:2px}',
@@ -152,7 +175,7 @@
     '.a11y-sw{position:relative;flex:none;width:44px;height:24px;border-radius:999px;border:none;background:#333!important;cursor:pointer;transition:background .15s;margin-top:2px;padding:0}',
     '.a11y-sw[aria-pressed="true"]{background:var(--a11y-accent)!important}',
     '.a11y-sw span{position:absolute;top:4px;left:4px;width:16px;height:16px;border-radius:50%;background:#fff!important;transition:transform .15s}',
-    '.a11y-sw[aria-pressed="true"] span{transform:translateX(20px)}',
+    '.a11y-sw[aria-pressed="true"] span{transform:translateX(20px);background:var(--a11y-on-accent)!important}',
     '.a11y-range{display:flex;flex-direction:column;gap:8px}',
     '.a11y-range input{width:100%;accent-color:var(--a11y-accent)}',
     '.a11y-val{font-size:12px;color:var(--a11y-accent)!important;font-variant-numeric:tabular-nums}',
@@ -171,7 +194,7 @@
     '.a11y-bar span{color:rgba(255,255,255,.8)!important;padding:0 2px}',
     '.a11y-bar button{display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 12px;border-radius:999px;border:none;background:rgba(255,255,255,.12)!important;color:#fff!important;font-size:14px;font-weight:600;cursor:pointer}',
     '.a11y-bar button svg{width:16px;height:16px}',
-    '.a11y-bar button.pri{background:var(--a11y-accent)!important;color:#111!important}',
+    '.a11y-bar button.pri{background:var(--a11y-accent)!important;color:var(--a11y-on-accent)!important}',
     '@media (max-width:640px){.a11y-panel{width:320px}.a11y-bar .txt{display:none}}'
   ].join('\n');
 
@@ -181,6 +204,7 @@
   // ── Aplicar estado ──────────────────────────────────────────────────────────
   function apply() {
     var r = document.documentElement;
+    SeeThrough.setEnabled(settings.highContrast || settings.visualAccessibilityMode);
     r.classList.toggle('a11y-visual-total', settings.visualAccessibilityMode);
     if (settings.visualAccessibilityMode) { r.style.fontSize = '24px'; r.style.lineHeight = '1.5'; }
     else {
@@ -197,6 +221,75 @@
     Ruler.setEnabled(settings.readingRuler);
     Speech.setEnabled(settings.speech);
   }
+
+  // ── Capas que siguen transparentes en los modos de contraste ──────────────────
+  // "Alto contraste" y "Modo Visual Total" pintan de negro el fondo de todo. Una capa
+  // decorativa que va ENCIMA del contenido (ruido, scanlines, viñetas, degradados sobre
+  // fotos…) se volvería así una cortina negra que tapa la página entera. Esas capas se
+  // reconocen porque no reciben clics (pointer-events:none; si los recibieran, taparían
+  // los del contenido) o porque están posicionadas y no tienen texto ni controles. A esas
+  // se les deja el fondo transparente, que es lo que eran. Lo que tiene texto propio
+  // conserva el fondo negro, para que se siga leyendo aunque haya una imagen debajo.
+  var SeeThrough = (function () {
+    var ATTR = 'data-a11y-thru', on = false, mo = null;
+    var SKIP = '#a11y-root,.a11y-bar,#a11y-ruler';
+    var INTERACTIVE = 'a[href],button,input,select,textarea,iframe,video[controls],[role="button"],[role="link"],[tabindex]:not([tabindex="-1"])';
+
+    function ownText(e) {
+      for (var n = e.firstChild; n; n = n.nextSibling) if (n.nodeType === 3 && /\S/.test(n.nodeValue)) return true;
+      return false;
+    }
+    // 'tree' = la capa y todo lo que contiene · 'self' = solo ese elemento · null = fondo negro
+    function kind(e) {
+      if (e === document.body || e.closest(SKIP)) return null;
+      var cs = getComputedStyle(e);
+      if ((cs.position === 'absolute' || cs.position === 'fixed') && !/\S/.test(e.textContent) && !e.querySelector(INTERACTIVE)) return 'tree';
+      if (cs.pointerEvents === 'none' && !ownText(e)) return 'self';
+      return null;
+    }
+    // Primero se lee todo y después se escribe: así no se fuerza un recálculo de estilos por elemento.
+    function scan(nodes, deep) {
+      var res = [], i, j;
+      for (i = 0; i < nodes.length; i++) {
+        var n = nodes[i]; if (!n.isConnected) continue;
+        res.push(n, kind(n));
+        if (deep) { var all = n.getElementsByTagName('*'); for (j = 0; j < all.length; j++) res.push(all[j], kind(all[j])); }
+      }
+      for (i = 0; i < res.length; i += 2) {
+        var e = res[i], v = res[i + 1];
+        if (v) { if (e.getAttribute(ATTR) !== v) e.setAttribute(ATTR, v); }
+        else if (e.hasAttribute(ATTR)) e.removeAttribute(ATTR);
+      }
+    }
+    function onMutations(list) {
+      var deep = [], shallow = [];
+      for (var i = 0; i < list.length; i++) {
+        var m = list[i], t = m.target.nodeType === 1 ? m.target : m.target.parentElement;
+        if (!t) continue;
+        // Una capa vacía que luego recibe texto o controles (p. ej. un contenedor de avisos) deja de ser transparente
+        var layer = t.closest('[' + ATTR + '="tree"]'); if (layer) deep.push(layer);
+        for (var j = 0; j < m.addedNodes.length; j++) if (m.addedNodes[j].nodeType === 1) deep.push(m.addedNodes[j]);
+        // …y una que se queda vacía puede pasar a serlo
+        if (m.removedNodes.length) shallow.push(t);
+      }
+      if (deep.length) scan(deep, true);
+      if (shallow.length) scan(shallow, false);
+    }
+    return {
+      setEnabled: function (v) {
+        if (v === on || !document.body) return; on = v;
+        if (v) {
+          scan([document.body], true);
+          mo = new MutationObserver(onMutations);
+          mo.observe(document.body, { childList: true, subtree: true, characterData: true });
+        } else {
+          if (mo) mo.disconnect(); mo = null;
+          var marked = document.querySelectorAll('[' + ATTR + ']');
+          for (var i = 0; i < marked.length; i++) marked[i].removeAttribute(ATTR);
+        }
+      }
+    };
+  })();
 
   // ── Guía de lectura ───────────────────────────────────────────────────────────
   var Ruler = (function () {
