@@ -182,6 +182,10 @@
     '.a11y-foot{flex:none;padding:16px 20px;border-top:1px solid rgba(255,255,255,.1)!important}',
     '.a11y-reset{width:100%;padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,.15)!important;background:transparent!important;color:rgba(255,255,255,.8)!important;font-size:14px;font-weight:600;cursor:pointer}',
     '.a11y-reset:hover{color:#fff!important;border-color:var(--a11y-accent)!important}',
+    /* `#a11y-root` sube la especificidad para ganarle al `text-decoration:none` endurecido de arriba: los enlaces deben verse subrayados */
+    '.a11y-credit{margin:12px 0 0;text-align:center;font-size:12px;color:rgba(255,255,255,.6)!important}',
+    '#a11y-root .a11y-credit a{color:#fff!important;font-weight:600;text-decoration:underline!important;text-underline-offset:2px}',
+    '#a11y-root .a11y-credit a:hover{color:var(--a11y-accent)!important}',
 
     /* Guía de lectura */
     '#a11y-ruler{position:fixed;inset:0;pointer-events:none;z-index:2147483300}',
@@ -464,7 +468,13 @@
     var foot = el('div', 'a11y-foot');
     var reset = el('button', 'a11y-reset', 'Restablecer valores predeterminados');
     reset.addEventListener('click', function () { settings = assign({}, DEFAULTS); apply(); refreshPanel(); });
-    foot.appendChild(reset); panel.appendChild(foot);
+    foot.appendChild(reset);
+    foot.appendChild(el('p', 'a11y-credit',
+      'Hecho por ' +
+      '<a href="https://www.quantumcode.art/" target="_blank" rel="noopener noreferrer">Quantum Code</a>' +
+      ' y ' +
+      '<a href="https://www.fundacionarupo.org/" target="_blank" rel="noopener noreferrer">Fundación Arupo</a>'));
+    panel.appendChild(foot);
   }
 
   function refreshPanel() {

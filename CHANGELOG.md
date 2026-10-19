@@ -17,6 +17,12 @@ y el proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 - Los modos de contraste ya no repintan la interfaz del propio widget (cuadro
   negro detrás del icono ♿, icono amarillo sobre el color de marca).
 
+### Añadido
+- Créditos al pie del panel: «Hecho por Quantum Code y Fundación Arupo», con
+  enlaces a [quantumcode.art](https://www.quantumcode.art/) y
+  [fundacionarupo.org](https://www.fundacionarupo.org/). Se ven subrayados y con
+  buen contraste también con los modos de contraste activos.
+
 ### Cambiado
 - El icono del botón flotante, la bolita de los interruptores encendidos y el
   botón principal del lector de voz eligen solos blanco o casi negro según el
