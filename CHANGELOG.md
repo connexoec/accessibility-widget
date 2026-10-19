@@ -6,6 +6,24 @@ y el proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
 ## [Sin publicar]
 
+### Añadido
+- **Aviso de versión nueva** para quien aloja el archivo por su cuenta (las copias
+  cargadas desde un CDN con `@1` o sin versión ya se actualizan solas y no consultan
+  nada). Una vez por semana y por navegador consulta el `package.json` de jsDelivr
+  (sin cookies ni `Referer`); si hay una versión más nueva, avisa en la consola del
+  navegador y, al abrir la página con `?a11y-update`, en el pie del panel. Los
+  visitantes normales no ven nada. Se apaga con `data-update-check="false"`.
+- `A11yWidget.version` y `A11yWidget.checkForUpdates()`.
+- `npm run build` falla si la `VERSION` del código no coincide con `package.json`, y
+  `npm publish` recompila antes de subir.
+
+### Documentación
+- Nueva sección «Actualizar el widget»: qué instalaciones se actualizan solas y
+  cuáles no, cómo descargar el archivo nuevo y cómo saber qué versión se usa.
+- La respuesta sobre el envío de datos menciona la consulta semanal del aviso.
+- **Importante:** las copias anteriores a la 1.2.0 (1.0.0 y 1.1.0) no traen este
+  aviso, así que a quien las aloja hay que avisarle por otra vía.
+
 ## [1.1.0] — 2026-10-19
 
 > Los sitios que cargan el widget desde el CDN con `@1` reciben esta versión

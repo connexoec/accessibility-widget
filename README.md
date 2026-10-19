@@ -8,7 +8,7 @@
 [![npm version](https://img.shields.io/npm/v/connexo-accessibility-widget?color=ff6600&label=npm)](https://www.npmjs.com/package/connexo-accessibility-widget)
 [![License: MIT](https://img.shields.io/badge/License-MIT-ff6600.svg)](./LICENSE)
 ![No dependencies](https://img.shields.io/badge/dependencias-0-ff6600.svg)
-![Size](https://img.shields.io/badge/min-~26KB%20(~10KB%20gzip)-ff6600.svg)
+![Size](https://img.shields.io/badge/min-~29KB%20(~12KB%20gzip)-ff6600.svg)
 ![Vanilla JS](https://img.shields.io/badge/vanilla-JS-ff6600.svg)
 
 </div>
@@ -25,6 +25,7 @@
 - [Demo](#-demo)
 - [Instalación en 5 minutos](#-instalación-en-5-minutos)
 - [Guías de integración por plataforma](#-guías-de-integración-por-plataforma)
+- [Actualizar el widget](#-actualizar-el-widget)
 - [Configuración](#-configuración)
 - [API de JavaScript](#-api-de-javascript)
 - [Accesibilidad y estándares](#-accesibilidad-y-estándares)
@@ -91,6 +92,10 @@ Añade **una sola línea** antes de `</body>`:
 ```
 
 Eso es todo. No hay que inicializar nada: el widget arranca solo. ✅
+
+> Una copia alojada por ti **no se actualiza sola**. Mira
+> [Actualizar el widget](#-actualizar-el-widget) para saber cómo enterarte de
+> las versiones nuevas y cómo ponerlas.
 
 ---
 
@@ -228,6 +233,52 @@ del CDN y dispárala en *All Pages*.
 
 ---
 
+## 🔄 Actualizar el widget
+
+Cómo se actualiza depende de cómo lo instalaste:
+
+| Cómo lo cargas | ¿Se actualiza solo? | Qué hacer |
+|----------------|---------------------|-----------|
+| Por CDN, sin versión o con `@1` (lo que recomienda esta guía) | **Sí** | Nada. Recibes cada versión 1.x nueva; por la caché del CDN puede tardar hasta unas 12 horas. |
+| Por CDN con una versión exacta (`@1.2.0`) | No | Cambia el número en la URL. |
+| Copia en tu servidor (Opción B) | No | Descarga el archivo nuevo y reemplázalo (ver abajo). |
+
+**Descargar la última versión.** Abre esta dirección, guarda el archivo y
+súbelo en lugar del anterior:
+
+```
+https://cdn.jsdelivr.net/npm/connexo-accessibility-widget@latest/a11y-widget.min.js
+```
+
+Si tu sitio guarda archivos en caché, añade la versión a la dirección del
+script para que los navegadores bajen el nuevo:
+`<script src="/js/a11y-widget.min.js?v=1.2.0" defer></script>`.
+
+**¿Qué versión tengo?** Abre tu página, abre la consola del navegador (`F12`) y
+escribe `A11yWidget.version`. Si responde `undefined`, tienes una versión
+anterior a la 1.2.0: actualízala.
+
+**Aviso de versión nueva (desde la 1.2.0).** Las copias que no vienen de un CDN
+con versión móvil consultan, como máximo **una vez por semana y por navegador**,
+cuál es la última versión publicada. Si hay una más nueva:
+
+- aparece un aviso en la **consola del navegador** (`F12`);
+- si abres tu página añadiendo `?a11y-update` a la dirección
+  (`https://tusitio.com/?a11y-update`), el pie del panel muestra la versión que
+  usas y si hay una nueva, con un enlace a esta sección.
+
+Los visitantes normales **no ven nada**. También puedes preguntarlo por código:
+
+```js
+A11yWidget.checkForUpdates().then(console.log);
+// → { current: '1.2.0', latest: '1.3.0', updateAvailable: true }
+```
+
+Se apaga con `data-update-check="false"` (ver [Configuración](#-configuración)).
+Qué datos implica: ver [Preguntas frecuentes](#-preguntas-frecuentes).
+
+---
+
 ## ⚙️ Configuración
 
 Opcional. Por atributos en el `<script>`:
@@ -253,6 +304,7 @@ O por objeto global **antes** del script:
 | `accent` | cualquier color CSS (hex, rgb…) | `#ff6600` |
 | `position` | `bottom-right` · `bottom-left` · `top-right` · `top-left` | `bottom-right` |
 | `storageKey` | nombre de la clave de `localStorage` | `a11y-settings` |
+| `updateCheck` | `false` apaga el aviso de versión nueva (ver [Actualizar](#-actualizar-el-widget)) | activo en copias alojadas por ti |
 
 > **Revisa la esquina antes de publicar.** El botón ♿ queda por encima de todo
 > (`z-index` máximo), así que si tu sitio ya tiene algo flotante en esa esquina
@@ -274,6 +326,8 @@ A11yWidget.open();   // abre el panel
 A11yWidget.close();  // lo cierra
 A11yWidget.get();    // → objeto con las preferencias actuales
 A11yWidget.set({ highContrast: true, fontSize: 1.25 }); // aplica preferencias
+A11yWidget.version;  // → '1.2.0' (la versión que estás usando)
+A11yWidget.checkForUpdates(); // → Promise { current, latest, updateAvailable }
 ```
 
 Útil, por ejemplo, para poner tu **propio** botón "Accesibilidad" en el menú:
@@ -360,8 +414,16 @@ igual que antes. Mientras están activos, ten en cuenta dos cosas:
   títulos con el texto al 150 % (WCAG pide que el contenido aguante hasta 200 %).
 
 **¿Envía datos a algún servidor?**
-No. Todo ocurre en el navegador del usuario; las preferencias se guardan solo en
-su dispositivo (`localStorage`). Cero rastreo.
+No envía datos de tus visitantes ni de tu sitio. Todo ocurre en el navegador del
+usuario; las preferencias se guardan solo en su dispositivo (`localStorage`).
+Cero rastreo.
+
+Hay una única conexión, y solo en copias alojadas por ti: para el
+[aviso de versión nueva](#-actualizar-el-widget), cada navegador pide como máximo
+una vez por semana el `package.json` del widget a jsDelivr. Va sin cookies y sin
+`Referer`, así que jsDelivr solo ve la IP, como en cualquier descarga desde un
+CDN. Si prefieres cero conexiones, añade `data-update-check="false"`. Si lo
+cargas desde el CDN sin versión o con `@1`, no se hace esa consulta.
 
 **¿Necesito build o npm?**
 No. Es un archivo. `npm`/`esbuild` solo hacen falta si quieres **editar** y

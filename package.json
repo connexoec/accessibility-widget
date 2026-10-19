@@ -1,6 +1,6 @@
 {
   "name": "connexo-accessibility-widget",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Widget de accesibilidad completo en un solo archivo, sin dependencias. 11 controles (contraste, dislexia, lector de voz, guía de lectura, cursor grande y más). Se integra en cualquier web en menos de 5 minutos.",
   "main": "a11y-widget.js",
   "unpkg": "a11y-widget.min.js",
@@ -12,7 +12,9 @@
     "LICENSE"
   ],
   "scripts": {
+    "prebuild": "node scripts/check-version.js",
     "build": "esbuild a11y-widget.js --minify --legal-comments=inline --outfile=a11y-widget.min.js",
+    "prepublishOnly": "npm run build",
     "demo": "npx serve ."
   },
   "keywords": [

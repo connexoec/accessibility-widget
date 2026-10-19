@@ -19,6 +19,7 @@
  *   accent   → color de marca (CTA, foco, resaltados).  Def: #ff6600
  *   position → bottom-right | bottom-left | top-right | top-left. Def: bottom-right
  *   storageKey → clave de localStorage. Def: 'a11y-settings'
+ *   updateCheck → 'false' apaga el aviso de versión nueva (ver README, «Actualizar»).
  *
  * Controles: tamaño de texto · espaciado de línea · fuente para dislexia ·
  * alto contraste · blanco y negro · resaltar enlaces · guía de lectura ·
@@ -183,9 +184,9 @@
     '.a11y-reset{width:100%;padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,.15)!important;background:transparent!important;color:rgba(255,255,255,.8)!important;font-size:14px;font-weight:600;cursor:pointer}',
     '.a11y-reset:hover{color:#fff!important;border-color:var(--a11y-accent)!important}',
     /* `#a11y-root` sube la especificidad para ganarle al `text-decoration:none` endurecido de arriba: los enlaces deben verse subrayados */
-    '.a11y-credit{margin:12px 0 0;text-align:center;font-size:12px;color:rgba(255,255,255,.6)!important}',
-    '#a11y-root .a11y-credit a{color:#fff!important;font-weight:600;text-decoration:underline!important;text-underline-offset:2px}',
-    '#a11y-root .a11y-credit a:hover{color:var(--a11y-accent)!important}',
+    '.a11y-credit,.a11y-update{margin:12px 0 0;text-align:center;font-size:12px;color:rgba(255,255,255,.6)!important}',
+    '#a11y-root .a11y-credit a,#a11y-root .a11y-update a{color:#fff!important;font-weight:600;text-decoration:underline!important;text-underline-offset:2px}',
+    '#a11y-root .a11y-credit a:hover,#a11y-root .a11y-update a:hover{color:var(--a11y-accent)!important}',
 
     /* Guía de lectura */
     '#a11y-ruler{position:fixed;inset:0;pointer-events:none;z-index:2147483300}',
@@ -426,7 +427,7 @@
   })();
 
   // ── Panel + botón flotante ─────────────────────────────────────────────────────
-  var root, panel, backdrop, launcher, panelOpen = false, lastFocus = null;
+  var root, panel, backdrop, launcher, updateEl, panelOpen = false, lastFocus = null;
 
   function buildPanel() {
     backdrop = el('div', 'a11y-backdrop'); backdrop.setAttribute('aria-hidden', 'true');
@@ -469,6 +470,10 @@
     var reset = el('button', 'a11y-reset', 'Restablecer valores predeterminados');
     reset.addEventListener('click', function () { settings = assign({}, DEFAULTS); apply(); refreshPanel(); });
     foot.appendChild(reset);
+    if (WANT_STATUS) {
+      updateEl = el('p', 'a11y-update'); updateEl.textContent = 'Versión ' + VERSION + ' · comprobando…';
+      foot.appendChild(updateEl);
+    }
     foot.appendChild(el('p', 'a11y-credit',
       'Hecho por ' +
       '<a href="https://www.quantumcode.art/" target="_blank" rel="noopener noreferrer">Quantum Code</a>' +
@@ -507,6 +512,77 @@
     if (lastFocus && lastFocus.focus) lastFocus.focus();
   }
 
+  // ── Aviso de versión nueva ───────────────────────────────────────────────────
+  // Pensado para copias alojadas por cuenta propia: las que se cargan desde un CDN con
+  // versión móvil (sin versión o `@1`) ya se actualizan solas y no consultan nada.
+  // Una consulta por semana y navegador al package.json de jsDelivr, sin cookies ni
+  // referrer. El aviso va a la consola del navegador y, con `?a11y-update` en la
+  // dirección, al pie del panel: los visitantes normales no lo ven.
+  var VERSION = '1.2.0'; // debe coincidir con package.json (lo comprueba `npm run build`)
+  var UPDATE_URL = 'https://cdn.jsdelivr.net/npm/connexo-accessibility-widget@latest/package.json';
+  var UPDATE_HELP = 'https://github.com/connexoec/accessibility-widget#-actualizar-el-widget';
+  var UPDATE_KEY = STORAGE_KEY + '-update';
+  var UPDATE_TTL = 7 * 24 * 60 * 60 * 1000;
+  var WANT_STATUS = /[?&]a11y-update(?:[=&]|$)/.test(window.location.search);
+
+  function parseVer(v) { var m = /^(\d+)\.(\d+)\.(\d+)$/.exec(v); return m ? [+m[1], +m[2], +m[3]] : null; }
+  // ¿a es una versión más nueva que b? Las que no son x.y.z (prelanzamientos) se ignoran.
+  function isNewer(a, b) {
+    var x = parseVer(a), y = parseVer(b); if (!x || !y) return false;
+    for (var i = 0; i < 3; i++) if (x[i] !== y[i]) return x[i] > y[i];
+    return false;
+  }
+  // ¿Se sirve desde jsDelivr/unpkg SIN versión exacta? Con `@1.1.0` fijo sí conviene avisar.
+  function movingCdn(src) {
+    var m = /^https?:\/\/(?:[\w-]+\.)?(?:jsdelivr\.net|unpkg\.com)\/([^?#]*)/i.exec(src || '');
+    if (!m) return false;
+    var v = /@([^/]+)\//.exec(m[1]);
+    return !v || !/^\d+\.\d+\.\d+$/.test(v[1]);
+  }
+  function readUpdateCache() {
+    try { var c = JSON.parse(window.localStorage.getItem(UPDATE_KEY)); return c && typeof c.t === 'number' ? c : null; } catch (e) { return null; }
+  }
+  function writeUpdateCache(v) {
+    try { window.localStorage.setItem(UPDATE_KEY, JSON.stringify({ t: Date.now(), v: v })); } catch (e) {}
+  }
+  // Solo se acepta un número x.y.z: nada de lo que devuelva el CDN llega al DOM tal cual.
+  function fetchLatest() {
+    return window.fetch(UPDATE_URL, { credentials: 'omit', referrerPolicy: 'no-referrer' })
+      .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then(function (p) { return p && parseVer(p.version) ? p.version : null; });
+  }
+  function checkForUpdates() {
+    if (!window.fetch) return Promise.reject(new Error('fetch no disponible'));
+    return fetchLatest().then(function (latest) {
+      return { current: VERSION, latest: latest, updateAvailable: isNewer(latest, VERSION) };
+    });
+  }
+  function showStatus(latest, newer) {
+    if (!updateEl) return;
+    updateEl.textContent = 'Versión ' + VERSION + ' · ' + (latest == null ? 'no se pudo comprobar si hay una nueva.' : newer ? 'hay una nueva: ' + latest + '. ' : 'al día.');
+    if (newer) {
+      var a = el('a', null, 'Cómo actualizar'); a.href = UPDATE_HELP; a.target = '_blank'; a.rel = 'noopener noreferrer';
+      updateEl.appendChild(a);
+    }
+  }
+  function report(latest) {
+    var newer = isNewer(latest, VERSION);
+    if (newer && window.console && console.warn) console.warn('[Accessibility Widget] Hay una versión nueva: ' + latest + ' (usas la ' + VERSION + '). Cómo actualizar: ' + UPDATE_HELP + ' · Para apagar este aviso: data-update-check="false".');
+    showStatus(latest, newer);
+  }
+  function autoCheck() {
+    try {
+      if (!WANT_STATUS && (String(read('updateCheck', 'true')) === 'false' || movingCdn(script && script.src))) return;
+      if (!window.fetch) { showStatus(null, false); return; }
+      var cached = readUpdateCache(), age = cached ? Date.now() - cached.t : -1;
+      if (!WANT_STATUS && age >= 0 && age < UPDATE_TTL) { report(cached.v); return; }
+      fetchLatest().catch(function () { return null; }).then(function (v) {
+        v = v || (cached && cached.v) || null;
+        writeUpdateCache(v); report(v);
+      }).catch(function () {});
+    } catch (e) {}
+  }
+
   // ── Init ────────────────────────────────────────────────────────────────────
   function init() {
     var style = el('style'); style.id = 'a11y-widget-style'; style.textContent = CSS; document.head.appendChild(style);
@@ -517,7 +593,9 @@
     buildPanel();
     apply(); // aplica preferencias guardadas al cargar
     // API pública mínima
-    window.A11yWidget = { open: openPanel, close: closePanel, get: function () { return assign({}, settings); }, set: function (o) { settings = assign({}, settings, o); apply(); refreshPanel(); } };
+    window.A11yWidget = { version: VERSION, checkForUpdates: checkForUpdates, open: openPanel, close: closePanel, get: function () { return assign({}, settings); }, set: function (o) { settings = assign({}, settings, o); apply(); refreshPanel(); } };
+    // Con la página ya en marcha: no compite con la carga.
+    if (window.requestIdleCallback) window.requestIdleCallback(autoCheck, { timeout: 5000 }); else setTimeout(autoCheck, 3000);
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
