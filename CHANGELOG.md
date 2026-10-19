@@ -6,6 +6,11 @@ y el proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
 ## [Sin publicar]
 
+## [1.1.0] — 2026-10-19
+
+> Los sitios que cargan el widget desde el CDN con `@1` reciben esta versión
+> solos. Quienes fijaron `@1.0.0` o alojan el archivo deben actualizarlo a mano.
+
 ### Corregido
 - **Alto contraste** y **Modo Visual Total** ya no dejan la página entera en
   negro en sitios con capas decorativas encima del contenido (ruido, *scanlines*,
